@@ -44,6 +44,7 @@ from supervisor.options import signame
 from supervisor import events
 from supervisor.states import SupervisorStates
 from supervisor.states import getProcessStateDescription
+from supervisor.cron import Cron
 
 class Supervisor:
     stopping = False # set after we detect that we are handling a stop request
@@ -55,6 +56,7 @@ class Supervisor:
         self.options = options
         self.process_groups = {}
         self.ticks = {}
+        self.cron = None
 
     def main(self):
         if not self.options.first:
@@ -74,13 +76,15 @@ class Supervisor:
         if not self.options.nocleanup:
             # clean up old automatic logs
             self.options.clear_autochildlogdir()
-
+        
+        self.cron = Cron(self.options.args, self.options.logger)
         self.run()
 
     def run(self):
         self.process_groups = {} # clear
         self.stop_groups = None # clear
         events.clear()
+        self.cron.start()
         try:
             for config in self.options.process_group_configs:
                 self.add_process_group(config)
@@ -94,7 +98,9 @@ class Supervisor:
             self.options.write_pidfile()
             self.runforever()
         finally:
+            self.cron.stop()
             self.options.cleanup()
+            
 
     def diff_to_active(self, new=None):
         if not new:

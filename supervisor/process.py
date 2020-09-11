@@ -30,6 +30,9 @@ from supervisor.datatypes import RestartUnconditionally
 
 from supervisor.socket_manager import SocketManager
 
+from supervisor import cron
+
+
 @total_ordering
 class Subprocess(object):
 
@@ -65,6 +68,19 @@ class Subprocess(object):
         self.dispatchers = {}
         self.pipes = {}
         self.state = ProcessStates.STOPPED
+        self.cronjobs = []
+        self.cron_register()
+    
+    def cron_register(self):
+        if self.config.cron_start:
+            self.cronjobs.append(cron.register(self.config.cron_start, 'start ' + self.config.name))
+        if self.config.cron_stop:
+            self.cronjobs.append(cron.register(self.config.cron_stop, 'stop ' + self.config.name))
+        if self.config.cron_restart:
+            self.cronjobs.append(cron.register(self.config.cron_restart, 'restart ' + self.config.name))
+    
+    def cron_unregister(self):
+        cron.unregister(self.cronjobs)
 
     def removelogs(self):
         for dispatcher in self.dispatchers.values():
@@ -814,7 +830,8 @@ class ProcessGroupBase(object):
         return dispatchers
 
     def before_remove(self):
-        pass
+        for process in self.processes.values():
+            process.cron_unregister()
 
 class ProcessGroup(ProcessGroupBase):
     def transition(self):
