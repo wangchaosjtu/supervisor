@@ -1,3 +1,17 @@
+Supervisor Cron Mod
+===================
+
+A modification of supervisor that supports scheduling start/stop/restart 
+of the jobs in the config. It adds 3 options, cron_start, cron_stop and 
+cron_restart. Each is a cron-like expression. For example, the following 
+config will start the job every two minute and stop it every three minutes::
+
+    [program: test]
+    command = sleep infinity
+    cron_start = */2 * * * *
+    cron_stop = */3 * * * *
+
+
 Supervisor
 ==========
 
