@@ -922,6 +922,9 @@ class ServerOptions(Options):
         serverurl = get(section, 'serverurl', None)
         if serverurl and serverurl.strip().upper() == 'AUTO':
             serverurl = None
+        cron_start = get(section, 'cron_start', None)
+        cron_stop = get(section, 'cron_stop', None)
+        cron_restart = get(section, 'cron_restart', None)
 
         # find uid from "user" option
         user = get(section, 'user', None)
@@ -1033,7 +1036,10 @@ class ServerOptions(Options):
                 exitcodes=exitcodes,
                 redirect_stderr=redirect_stderr,
                 environment=environment,
-                serverurl=serverurl)
+                serverurl=serverurl,
+                cron_start=cron_start,
+                cron_stop=cron_stop,
+                cron_restart=cron_restart)
 
             programs.append(pconfig)
 
@@ -1853,8 +1859,9 @@ class ProcessConfig(Config):
         'stderr_logfile_backups', 'stderr_logfile_maxbytes',
         'stderr_events_enabled', 'stderr_syslog',
         'stopsignal', 'stopwaitsecs', 'stopasgroup', 'killasgroup',
-        'exitcodes', 'redirect_stderr' ]
-    optional_param_names = [ 'environment', 'serverurl' ]
+        'exitcodes', 'redirect_stderr']
+    optional_param_names = [ 'environment', 'serverurl', 
+        'cron_start', 'cron_stop', 'cron_restart' ]
 
     def __init__(self, options, **params):
         self.options = options
